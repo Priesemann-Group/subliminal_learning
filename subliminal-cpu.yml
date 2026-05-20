@@ -1,0 +1,9 @@
+name: subliminal-cpu
+channels:
+  - conda-forge
+dependencies:
+  - python=3.10
+  - pip
+  - numpy=2.2
+  - pytorch-cpu=2.8
+  - torchvision=0.23
