@@ -49,6 +49,19 @@ def parse_args() -> argparse.Namespace:
     # Dataset
     p.add_argument("--dataset", type=str, default="mnist", choices=["mnist", "emnist", "MNIST", "EMNIST"])
     p.add_argument("--emnist-split", type=str, default="balanced", choices=["balanced", "letters"])
+    p.add_argument(
+        "--class-count",
+        type=int,
+        default=None,
+        help="If set, keep only labels 0..class_count-1 after any dataset target transform and remap them to 0..class_count-1.",
+    )
+    p.add_argument(
+        "--class-selection",
+        type=str,
+        default="first",
+        choices=["first"],
+        help="Class truncation rule. Currently only first is supported: keep labels 0..K-1.",
+    )
 
     # Architectures
     p.add_argument("--teacher-type", type=str, default="mlp", choices=["mlp", "cnn"])
@@ -173,6 +186,8 @@ def main() -> None:
         data_dir=args.data_dir,
         outdir=args.outdir,
         emnist_split=args.emnist_split,
+        class_count=args.class_count,
+        class_selection=args.class_selection,
         num_workers=args.num_workers,
         seed=args.seed,
         device=args.device,

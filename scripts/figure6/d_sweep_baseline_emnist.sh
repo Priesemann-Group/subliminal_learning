@@ -18,7 +18,7 @@ for seed in $SEEDS; do
       --student-type mlp \
       --teacher-hidden-dims 256,"${D}" \
       --student-hidden-dims 256,"${D}" \
-      --m 10 \
+      --m 50 \
       --teacher-init A,A,A,A \
       --student-init A,A,A,A \
       --teacher-trainable true,true,true,true \

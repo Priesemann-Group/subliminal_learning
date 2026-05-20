@@ -30,7 +30,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 import torch.optim as optim
-from torch.utils.data import DataLoader
+from torch.utils.data import DataLoader, Dataset
 from torchvision import datasets, transforms
 
 
@@ -54,6 +54,8 @@ ALLOWED_TIMINGS = {
 class ExperimentConfig:
     dataset: str = "mnist"
     data_dir: str = "./MNIST_DATA"
+    class_count: int | None = None
+    class_selection: str = "first"
     outdir: str = "./outputs"
     emnist_split: str = "balanced"
     num_workers: int = 0
@@ -609,6 +611,66 @@ def dataset_num_classes(dataset: str, emnist_split: str = "balanced") -> int:
 def emnist_letters_target_transform(y: int) -> int:
     return y - 1
 
+class ClassTruncatedDataset(Dataset):
+    """Keep selected classes and remap labels to 0..K-1.
+
+    Filtering is performed after the base dataset target_transform. This means
+    EMNIST letters labels are converted from 1..26 to 0..25 before truncation.
+    """
+
+    def __init__(self, base: Dataset, keep_classes: list[int]):
+        self.base = base
+        self.keep_classes = [int(c) for c in keep_classes]
+        self.label_map = {old: new for new, old in enumerate(self.keep_classes)}
+        keep_set = set(self.keep_classes)
+
+        raw_targets = getattr(base, "targets", None)
+        if raw_targets is None:
+            raise ValueError("ClassTruncatedDataset requires the base dataset to expose .targets")
+        if isinstance(raw_targets, torch.Tensor):
+            raw_targets = raw_targets.detach().cpu().tolist()
+
+        target_transform = getattr(base, "target_transform", None)
+        self.indices: list[int] = []
+        for i, y in enumerate(raw_targets):
+            yy = int(y)
+            if target_transform is not None:
+                yy = int(target_transform(yy))
+            if yy in keep_set:
+                self.indices.append(i)
+
+        if not self.indices:
+            raise ValueError(f"Class truncation produced an empty dataset for keep_classes={self.keep_classes}")
+
+    def __len__(self) -> int:
+        return len(self.indices)
+
+    def __getitem__(self, idx: int):
+        x, y = self.base[self.indices[idx]]
+        y = int(y)
+        return x, self.label_map[y]
+
+
+def selected_classes_for_config(config: ExperimentConfig, base_num_classes: int) -> list[int]:
+    if config.class_count is None:
+        return list(range(base_num_classes))
+
+    k = int(config.class_count)
+    if k < 2:
+        raise ValueError(f"--class-count must be >= 2, got {k}")
+    if k > base_num_classes:
+        raise ValueError(
+            f"--class-count={k} exceeds available classes={base_num_classes} "
+            f"for dataset={config.dataset!r}, emnist_split={config.emnist_split!r}"
+        )
+
+    selection = str(config.class_selection).lower()
+    if selection == "first":
+        return list(range(k))
+
+    raise ValueError(
+        f"Unsupported class_selection={config.class_selection!r}; currently only 'first' is supported."
+    )
 
 def make_dataloaders(config: ExperimentConfig, device: torch.device) -> tuple[DataLoader, DataLoader, int, int, int]:
     transform = transforms.Compose([
@@ -641,6 +703,15 @@ def make_dataloaders(config: ExperimentConfig, device: torch.device) -> tuple[Da
     else:
         raise ValueError(f"Unknown dataset: {config.dataset!r}")
 
+    base_num_classes = dataset_num_classes(dataset, config.emnist_split)
+    selected_classes = selected_classes_for_config(config, base_num_classes)
+
+    if config.class_count is not None:
+        train_ds = ClassTruncatedDataset(train_ds, selected_classes)
+        test_ds = ClassTruncatedDataset(test_ds, selected_classes)
+
+    num_classes = len(selected_classes)
+
     loader_generator = torch.Generator()
     loader_generator.manual_seed(derived_seed(config.seed, "dataloader_shuffle"))
 
@@ -659,7 +730,7 @@ def make_dataloaders(config: ExperimentConfig, device: torch.device) -> tuple[Da
         num_workers=config.num_workers,
         pin_memory=(device.type == "cuda"),
     )
-    return train_loader, test_loader, len(train_ds), len(test_ds), dataset_num_classes(dataset, config.emnist_split)
+    return train_loader, test_loader, len(train_ds), len(test_ds), num_classes
 
 
 def fade(t: torch.Tensor) -> torch.Tensor:
@@ -1564,6 +1635,9 @@ def run_experiment(config: ExperimentConfig) -> dict[str, Any]:
         "student_final_aux_loss": student_final_aux_loss,
         "teacher_train_loss_last": teacher_train_loss_last,
         "student_train_aux_loss_last": student_train_aux_loss_last,
+        "class_count": config.class_count if config.class_count is not None else "",
+        "class_selection": config.class_selection,
+        "base_num_classes": dataset_num_classes(config.dataset, config.emnist_split),
     }
 
     # Add compact aliases for the most frequently inspected head metrics.

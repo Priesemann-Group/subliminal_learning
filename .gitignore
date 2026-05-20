@@ -1,0 +1,4 @@
+MNIST/
+EMNIST/
+__pycache__/
+output/

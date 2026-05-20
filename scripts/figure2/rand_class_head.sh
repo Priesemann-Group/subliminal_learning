@@ -22,10 +22,10 @@ for seed in $SEEDS; do
             --noise-bsize 1000 \
             --noise-steps 60 \
             --m "$m" \
-            --init-config-teacher "A,A,A,A" \
-            --trainable-config-teacher "true,true,true,true" \
-            --init-config-student "A,A,A,random" \
-            --trainable-config-student "true,true,true,true" \
+            --teacher-init "A,A,A,A" \
+            --student-init "A,A,A,random" \
+            --teacher-trainable "true,true,true,true" \
+            --student-trainable "true,true,true,true" \
             --noise-dist uniform
     done
 done
