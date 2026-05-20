@@ -2,7 +2,7 @@
 set -euo pipefail
 
 m_VALUES=(3 10 25 50 100 250)
-SEEDS=$(seq 0 1)
+SEEDS=$(seq 0 19)
 
 RESULT_DIR="./output/same_init"
 mkdir -p "$RESULT_DIR"
