@@ -174,8 +174,13 @@ D1 = 8, 11, 16, 23, 32, 45, 64, 91, 128, 181, 256, 362,
      512, 724, 1024, 1448, 2048, 2896, 4096
 ```
 
-### Figure 4 scripts
-TODO
+### Figure 4 scripts: aux-head capacity and noise sample sweep
+
+| Script | Sweep |
+|---|---|
+| `noise_m_sweep.sh` | MNIST sweep over networks with different auxiliary head sizes `m` and number of noise steps `noise-steps`|
+| `m1_noise_sweep.sh` | Same sweep but only with a single auxiliary neuron (`m=1`)|
+| `noise1_m_sweep.sh` | Same sweep but with a fixed budget of noise steps (`N=10^3`)   |
 
 ### Figure 5 scripts: student-head perturbation sweeps
 
