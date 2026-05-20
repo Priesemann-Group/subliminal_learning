@@ -4,7 +4,7 @@ set -euo pipefail
 m_VALUES=(3 10 25 50 100 250)
 SEEDS=$(seq 0 19)
 
-OUTDIR="./output/same_init"
+OUTDIR="./output/random_both_hidden"
 mkdir -p "$OUTDIR"
 
 for seed in $SEEDS; do
@@ -24,7 +24,7 @@ for seed in $SEEDS; do
             --m "$m" \
             --init-config-teacher "A,A,A,A" \
             --trainable-config-teacher "true,true,true,true" \
-            --init-config-student "A,A,A,A" \
+            --init-config-student "random,random,A,A" \
             --trainable-config-student "true,true,true,true" \
             --noise-dist uniform
     done
