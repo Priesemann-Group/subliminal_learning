@@ -34,7 +34,7 @@ def parse_args() -> argparse.Namespace:
 
     # I/O and reproducibility
     p.add_argument("--outdir", type=str, default="./outputs")
-    p.add_argument("--data-dir", type=str, default="./MNIST_DATA")
+    p.add_argument("--data-dir", type=str, default="./MNIST")
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--num-workers", type=int, default=0)
     p.add_argument("--device", type=str, default="auto", help="auto, cpu, cuda, cuda:0, ...")
