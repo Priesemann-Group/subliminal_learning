@@ -1,10 +1,8 @@
 #!/bin/bash
 set -euo pipefail
-
 OUTDIR="./outputs/noise_m_sweep"
 mkdir -p "$OUTDIR"
-SEEDS=$(seq 0 19)
-
+SEEDS=($(seq 0 19))
 MS=($(python - <<'PY'
 import numpy as np
 vals = (np.sqrt(2) ** np.arange(0, 21)).round().astype(int)
@@ -21,12 +19,14 @@ print(" ".join(map(str, vals)))
 PY
 ))
 
-for M in "${MS[@]}"; do
+echo "Seeds: ${SEEDS[*]}"
+echo "m values: ${MS[*]}"
+echo "noise steps values: ${NOISE_STEPS_LIST[*]}"
+for SEED in "${SEEDS[@]}"; do
+  for M in "${MS[@]}"; do
     for NSTEPS in "${NOISE_STEPS_LIST[@]}"; do
-
-        LABEL="m${M}_noise_steps_${NSTEPS}"
-
-        python ../../run_subliminal.py \
+      LABEL="seed${SEED}_m${M}_noise_steps_${NSTEPS}"
+      python ../../run_subliminal.py \
         --outdir "${OUTDIR}" \
         --data-dir ../../MNIST \
         --seed "${SEED}" \
@@ -48,6 +48,6 @@ for M in "${MS[@]}"; do
         --noise-bsize 1000 \
         --noise-steps "${NSTEPS}" \
         --noise-dist uniform
-
     done
+  done
 done
