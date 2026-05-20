@@ -23,7 +23,7 @@ for seed in $SEEDS; do
             --noise-steps 60 \
             --m "$m" \
             --teacher-init "A,A,A,A" \
-            --student-init "A,A,A,random" \
+            --student-init "A,A,random,A" \
             --teacher-trainable "true,true,true,true" \
             --student-trainable "true,true,true,true" \
             --noise-dist uniform
