@@ -166,6 +166,8 @@ fc1, fc2, class_head, aux_head
 | `student_minus_one_layer_m50.sh` | Same one-layer-smaller student setting with `m=50`. |
 | `student_plus_one_layer_m10.sh` | Teacher has two hidden layers; student has three hidden layers; `m=10`. |
 | `student_plus_one_layer_m50.sh` | Same one-layer-larger student setting with `m=50`. |
+| `mlp_teacher_cnn_student_m10.sh` | Cross-architecture sweep with a MLP teacher and CNN student; `m=10`. |
+| `mlp_teacher_cnn_student_m50.sh` | Same MLP-teacher/CNN-student setting with `m=50`. |
 
 The first-layer-width scripts use:
 
